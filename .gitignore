@@ -33,3 +33,6 @@ test images/
 
 # API cache
 backend/.cache/
+
+# Root node_modules (Vercel API deps)
+/node_modules/

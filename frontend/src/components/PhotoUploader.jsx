@@ -2,7 +2,7 @@ import { useCallback, useState, useRef, useEffect } from 'react';
 import { useDropzone } from 'react-dropzone';
 import { Upload, Camera, X, AlertCircle, SwitchCamera, Image, RefreshCw } from 'lucide-react';
 
-const MAX_SIZE_BYTES = 10 * 1024 * 1024;
+const MAX_SIZE_BYTES = 4 * 1024 * 1024; // 4MB — Vercel serverless limit
 const ACCEPTED_TYPES = { 'image/jpeg': [], 'image/png': [], 'image/gif': [], 'image/webp': [] };
 
 async function validateFileSignature(file) {
@@ -104,7 +104,7 @@ function PhotoUploader({ onAnalyze, isLoading }) {
     if (rejectedFiles.length > 0) {
       const reason = rejectedFiles[0].errors[0];
       setValidationError(reason.code === 'file-too-large'
-        ? 'File is too large. Maximum size is 10MB.'
+        ? 'File is too large. Maximum size is 4MB.'
         : 'Only JPEG, PNG, GIF, or WebP images are allowed.');
       return;
     }
@@ -186,7 +186,7 @@ function PhotoUploader({ onAnalyze, isLoading }) {
                 <p className="text-gray-200 font-medium">
                   {isDragActive ? 'Drop your photo here' : 'Drag & drop a photo here'}
                 </p>
-                <p className="text-gray-500 text-sm mt-1">or click to browse — JPEG, PNG, WebP up to 10MB</p>
+                <p className="text-gray-500 text-sm mt-1">or click to browse — JPEG, PNG, WebP up to 4MB</p>
               </div>
             </div>
           </div>

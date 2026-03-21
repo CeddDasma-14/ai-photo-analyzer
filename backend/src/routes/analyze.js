@@ -16,7 +16,7 @@ const router = express.Router();
 // Store uploads in memory (never write to disk)
 const upload = multer({
   storage: multer.memoryStorage(),
-  limits: { fileSize: 10 * 1024 * 1024 }, // 10MB max
+  limits: { fileSize: 4 * 1024 * 1024 }, // 4MB max
   fileFilter: (_req, file, cb) => {
     // Only allow image MIME types — full signature check happens in classifyImage
     if (file.mimetype.startsWith('image/')) {
