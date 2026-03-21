@@ -10,7 +10,8 @@ export async function analyzePhoto(file) {
   formData.append('photo', file);
 
   try {
-    const response = await axios.post('/api/analyze', formData, {
+    const base = import.meta.env.VITE_API_URL ?? '';
+    const response = await axios.post(`${base}/api/analyze`, formData, {
       headers: { 'Content-Type': 'multipart/form-data' },
       timeout: 30000 // 30s timeout
     });

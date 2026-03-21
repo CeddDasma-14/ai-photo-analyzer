@@ -8,8 +8,13 @@ const analyzeRoute = require('./routes/analyze');
 const app = express();
 const PORT = process.env.PORT || 3001;
 
-// CORS — only allow localhost in dev
-const allowedOrigins = ['http://localhost:5173', 'http://localhost:3000'];
+// CORS — allow localhost in dev + Vercel frontend in production
+const allowedOrigins = [
+  'http://localhost:5173',
+  'http://localhost:3000',
+  process.env.FRONTEND_URL, // set this in Railway to your Vercel URL
+].filter(Boolean);
+
 app.use(cors({
   origin: (origin, callback) => {
     if (!origin || allowedOrigins.includes(origin)) {
