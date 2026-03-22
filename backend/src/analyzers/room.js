@@ -184,38 +184,71 @@ async function analyzeRoom(imageBuffer, mediaType, itemHints = '') {
     };
   }
 
-  // Fetch real PH market prices for significant items (limit to top 5 by value to save API calls)
+  // If user provided hints, parse them into named items and search directly
+  // This overrides Claude's generic names (e.g. "Gaming Laptop" → "Acer Predator Helios 16")
+  const hintItems = itemHints.trim()
+    ? itemHints.split(',').map(h => h.trim()).filter(Boolean).slice(0, 5)
+    : [];
+
   const rawItems = Array.isArray(extracted.items) ? extracted.items : [];
-  const itemsToPrice = rawItems
-    .filter(item => item.search_query || item.name)
-    .sort((a, b) => (b.estimated_value_usd || 0) - (a.estimated_value_usd || 0))
-    .slice(0, 5);
 
-  const priceResults = await Promise.all(
-    itemsToPrice.map(item => searchPHPrice(item.search_query || `${item.name} Philippines`))
-  );
+  let pricedItems;
 
-  // Merge real prices back into items
-  const pricedItems = rawItems.map(item => {
-    const idx = itemsToPrice.findIndex(i => i.name === item.name);
-    const ph = idx !== -1 ? priceResults[idx] : null;
-    return {
-      name:        item.name        ?? null,
+  if (hintItems.length > 0) {
+    // Search Serpapi using user-provided brand names directly
+    const hintPrices = await Promise.all(
+      hintItems.map(hint => searchPHPrice(`${hint} Philippines`))
+    );
+
+    // Replace top N Claude items with hint-named items + real prices
+    const hintedItems = hintItems.map((hint, i) => {
+      const ph = hintPrices[i];
+      // Try to match a Claude item by index for condition/category
+      const claudeItem = rawItems[i] ?? {};
+      return {
+        name: hint,
+        brand_model: hint,
+        category: claudeItem.category ?? 'electronics',
+        condition: claudeItem.condition ?? null,
+        estimated_value_usd: claudeItem.estimated_value_usd ?? null,
+        ...(ph ? { ph_price: { min_php: ph.min_php, max_php: ph.max_php, avg_php: ph.avg_php, source: ph.source, top_result: ph.top_result } } : {})
+      };
+    });
+
+    // Append remaining Claude items (beyond hint count) without pricing
+    const remainingItems = rawItems.slice(hintItems.length).map(item => ({
+      name: item.name ?? null,
       brand_model: item.brand_model ?? null,
-      category:    item.category    ?? null,
-      condition:   item.condition   ?? null,
+      category: item.category ?? null,
+      condition: item.condition ?? null,
       estimated_value_usd: typeof item.estimated_value_usd === 'number' ? item.estimated_value_usd : null,
-      ...(ph ? {
-        ph_price: {
-          min_php:    ph.min_php,
-          max_php:    ph.max_php,
-          avg_php:    ph.avg_php,
-          source:     ph.source,
-          top_result: ph.top_result,
-        }
-      } : {})
-    };
-  });
+    }));
+
+    pricedItems = [...hintedItems, ...remainingItems];
+  } else {
+    // No hints — fall back to Claude's item names + Serpapi search
+    const itemsToPrice = rawItems
+      .filter(item => item.search_query || item.name)
+      .sort((a, b) => (b.estimated_value_usd || 0) - (a.estimated_value_usd || 0))
+      .slice(0, 5);
+
+    const priceResults = await Promise.all(
+      itemsToPrice.map(item => searchPHPrice(item.search_query || `${item.name} Philippines`))
+    );
+
+    pricedItems = rawItems.map(item => {
+      const idx = itemsToPrice.findIndex(i => i.name === item.name);
+      const ph = idx !== -1 ? priceResults[idx] : null;
+      return {
+        name: item.name ?? null,
+        brand_model: item.brand_model ?? null,
+        category: item.category ?? null,
+        condition: item.condition ?? null,
+        estimated_value_usd: typeof item.estimated_value_usd === 'number' ? item.estimated_value_usd : null,
+        ...(ph ? { ph_price: { min_php: ph.min_php, max_php: ph.max_php, avg_php: ph.avg_php, source: ph.source, top_result: ph.top_result } } : {})
+      };
+    });
+  }
 
   // Compute total in PHP from real prices where available
   const totalPhp = pricedItems.reduce((sum, item) => {
