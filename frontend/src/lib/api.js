@@ -13,13 +13,13 @@ export async function analyzePhoto(file) {
     const base = import.meta.env.VITE_API_URL ?? '';
     const response = await axios.post(`${base}/api/analyze`, formData, {
       headers: { 'Content-Type': 'multipart/form-data' },
-      timeout: 30000 // 30s timeout
+      timeout: 60000 // 60s timeout — accounts for Render cold start
     });
     return response.data;
   } catch (err) {
     // Normalize error messages for the UI
     if (err.code === 'ECONNABORTED') {
-      throw new Error('Request timed out. The AI is taking too long — please try again.');
+      throw new Error('Server is waking up — please try again in a few seconds.');
     }
     if (err.response?.data?.error) {
       throw new Error(err.response.data.error);
