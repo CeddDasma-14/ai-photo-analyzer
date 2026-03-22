@@ -272,11 +272,15 @@ function PhotoUploader({ onAnalyze, isLoading }) {
           >
             <X className="w-4 h-4 text-orange-400" />
           </button>
-          {/* Optional item hints */}
+          {/* Optional item hints — Room Estimator only */}
           <div className="px-4 pt-3 pb-1 bg-[#0f0f0f] border-t border-white/5">
-            <label className="block text-xs text-gray-600 mb-1.5">
-              Optional: list key items for better PH pricing
-            </label>
+            <div className="flex items-center gap-2 mb-1">
+              <span className="text-xs font-semibold text-gray-400">🛋️ Room Estimator — Item Hints</span>
+              <span className="text-xs bg-white/5 border border-white/10 text-gray-600 px-2 py-0.5 rounded-full">Optional</span>
+            </div>
+            <p className="text-xs text-gray-600 mb-2">
+              Uploading a room photo? List your key items so we can fetch real Philippine market prices from Google Shopping. Skip this for food, plants, receipts, and other modules.
+            </p>
             <input
               type="text"
               value={itemHints}
