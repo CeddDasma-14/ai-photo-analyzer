@@ -1118,12 +1118,17 @@ function RoomResult({ data }) {
             ${data.total_estimated_value_usd.toLocaleString()}
             <span className="text-sm text-orange-400/50 ml-1">USD</span>
           </p>
-          {phpRate && (
+          {data.total_estimated_value_php ? (
+            <p className="text-base font-semibold text-gray-400 mt-0.5">
+              ≈ ₱{data.total_estimated_value_php.toLocaleString()}
+              <span className="text-xs text-green-500/60 ml-1">● Live PH prices</span>
+            </p>
+          ) : phpRate ? (
             <p className="text-base font-semibold text-gray-400 mt-0.5">
               ≈ ₱{Math.round(data.total_estimated_value_usd * phpRate).toLocaleString()}
               <span className="text-xs text-gray-600 ml-1">PHP</span>
             </p>
-          )}
+          ) : null}
         </div>
       )}
 
@@ -1161,14 +1166,26 @@ function RoomResult({ data }) {
                       <p className="text-xs mt-0.5" style={{ color: cond?.text ?? '#6b7280' }}>{cond?.label ?? item.condition}</p>
                     )}
                   </div>
-                  {item.estimated_value_usd != null && (
-                    <div className="text-right flex-shrink-0">
-                      <p className="text-sm font-semibold text-white">${item.estimated_value_usd.toLocaleString()}</p>
-                      {phpRate && (
-                        <p className="text-xs text-gray-600">₱{Math.round(item.estimated_value_usd * phpRate).toLocaleString()}</p>
-                      )}
-                    </div>
-                  )}
+                  <div className="text-right flex-shrink-0">
+                    {item.ph_price ? (
+                      <>
+                        <p className="text-sm font-semibold text-orange-400">
+                          ₱{item.ph_price.avg_php.toLocaleString()}
+                        </p>
+                        <p className="text-xs text-gray-600">
+                          ₱{item.ph_price.min_php.toLocaleString()} – ₱{item.ph_price.max_php.toLocaleString()}
+                        </p>
+                        <p className="text-xs text-green-500/60">● Live PH price</p>
+                      </>
+                    ) : item.estimated_value_usd != null ? (
+                      <>
+                        <p className="text-sm font-semibold text-white">${item.estimated_value_usd.toLocaleString()}</p>
+                        {phpRate && (
+                          <p className="text-xs text-gray-600">≈ ₱{Math.round(item.estimated_value_usd * phpRate).toLocaleString()}</p>
+                        )}
+                      </>
+                    ) : null}
+                  </div>
                 </div>
               );
             })}
