@@ -5,9 +5,10 @@ import axios from 'axios';
  * @param {File} file
  * @returns {{ category: string, confidence: number, result: object }}
  */
-export async function analyzePhoto(file) {
+export async function analyzePhoto(file, itemHints = '') {
   const formData = new FormData();
   formData.append('photo', file);
+  if (itemHints?.trim()) formData.append('item_hints', itemHints.trim());
 
   try {
     const base = import.meta.env.VITE_API_URL ?? '';

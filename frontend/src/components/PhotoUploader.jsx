@@ -31,6 +31,7 @@ function PhotoUploader({ onAnalyze, isLoading }) {
   const [selectedFile, setSelectedFile] = useState(null);
   const [validationError, setValidationError] = useState(null);
   const [lightbox, setLightbox]         = useState(false);
+  const [itemHints, setItemHints]       = useState('');
 
   // Camera
   const videoRef    = useRef(null);
@@ -131,12 +132,13 @@ function PhotoUploader({ onAnalyze, isLoading }) {
     setPreview(null);
     setSelectedFile(null);
     setValidationError(null);
+    setItemHints('');
     if (tab === 'camera') startCamera();
   }
 
   async function handleAnalyze() {
     if (!selectedFile || isLoading) return;
-    try { await onAnalyze(selectedFile, preview); } catch {}
+    try { await onAnalyze(selectedFile, preview, itemHints); } catch {}
   }
 
   return (
@@ -270,6 +272,21 @@ function PhotoUploader({ onAnalyze, isLoading }) {
           >
             <X className="w-4 h-4 text-orange-400" />
           </button>
+          {/* Optional item hints */}
+          <div className="px-4 pt-3 pb-1 bg-[#0f0f0f] border-t border-white/5">
+            <label className="block text-xs text-gray-600 mb-1.5">
+              Optional: list key items for better PH pricing
+            </label>
+            <input
+              type="text"
+              value={itemHints}
+              onChange={e => setItemHints(e.target.value)}
+              placeholder="e.g. Acer Predator Helios Neo 16, LG 27-inch monitor, Logitech G502 mouse"
+              className="w-full bg-white/[0.03] border border-white/10 rounded-lg px-3 py-2 text-sm text-gray-300 placeholder-gray-700 focus:outline-none focus:border-orange-500/40 transition-colors"
+              disabled={isLoading}
+            />
+          </div>
+
           <div className="p-4 bg-[#0f0f0f] flex items-center justify-between">
             <div className="flex items-center gap-2 text-sm text-gray-400">
               <Image className="w-4 h-4" />

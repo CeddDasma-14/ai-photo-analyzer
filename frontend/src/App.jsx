@@ -25,7 +25,7 @@ function App() {
 
   const { history, addScan, clearHistory } = useHistory();
 
-  async function handleAnalyze(file, previewUrl) {
+  async function handleAnalyze(file, previewUrl, itemHints) {
     setAppState(STATE.ANALYZING);
     setErrorMessage(null);
     setAnalysisResult(null);
@@ -33,7 +33,7 @@ function App() {
     setImageUrl(previewUrl ?? null);
 
     try {
-      const data = await analyzePhoto(file);
+      const data = await analyzePhoto(file, itemHints);
       setAnalysisResult(data);
       setAppState(STATE.RESULTS);
       addScan(data);

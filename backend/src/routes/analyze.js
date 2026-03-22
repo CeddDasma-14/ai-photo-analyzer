@@ -62,7 +62,7 @@ router.post('/analyze', upload.single('photo'), async (req, res, next) => {
     } else if (category === 'car_damage') {
       result = await analyzeCarDamage(req.file.buffer, mediaType);
     } else if (category === 'room') {
-      result = await analyzeRoom(req.file.buffer, mediaType);
+      result = await analyzeRoom(req.file.buffer, mediaType, req.body.item_hints ?? '');
     } else {
       result = runStub(category);
     }

@@ -134,8 +134,12 @@ Rules:
  * @param {string} mediaType
  * @returns {{ module, title, status, data }}
  */
-async function analyzeRoom(imageBuffer, mediaType) {
+async function analyzeRoom(imageBuffer, mediaType, itemHints = '') {
   const base64Image = imageBuffer.toString('base64');
+
+  const hintsBlock = itemHints.trim()
+    ? `\n\nUSER-PROVIDED ITEM DETAILS (use these for accurate brand/model identification and search_query generation):\n"${itemHints.trim()}"\nPrioritize these exact brand names and models in your search_query fields.`
+    : '';
 
   let response;
   try {
@@ -146,7 +150,7 @@ async function analyzeRoom(imageBuffer, mediaType) {
         role: 'user',
         content: [
           { type: 'image', source: { type: 'base64', media_type: mediaType, data: base64Image } },
-          { type: 'text', text: EXTRACTION_PROMPT }
+          { type: 'text', text: EXTRACTION_PROMPT + hintsBlock }
         ]
       }]
     });
