@@ -131,9 +131,9 @@ async function analyzeCarDamage(imageBuffer, mediaType) {
         max:  typeof extracted.repair_estimate?.max === 'number' ? extracted.repair_estimate.max : null,
         note: extracted.repair_estimate?.note ?? null,
       },
-      is_driveable:    extracted.is_driveable    ?? null,
+      is_driveable:     extracted.is_driveable    ?? null,
       airbags_deployed: extracted.airbags_deployed ?? null,
-      summary: extracted.summary ?? null,
+      summary:          extracted.summary ?? null,
       ...(extracted.parse_error ? { note: 'Could not fully read the image — results may be incomplete.' } : {})
     }
   };
