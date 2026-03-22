@@ -38,8 +38,9 @@ router.post('/analyze', upload.single('photo'), async (req, res, next) => {
       return res.status(400).json({ error: 'No image provided. Please upload a photo.' });
     }
 
-    // Check cache first — same image = no API call
-    const cached = cache.get(req.file.buffer);
+    // Check cache first — same image + same hints = no API call
+    const hints = req.body.item_hints ?? '';
+    const cached = cache.get(req.file.buffer, hints);
     if (cached) {
       return res.json({ ...cached, from_cache: true });
     }
@@ -69,8 +70,8 @@ router.post('/analyze', upload.single('photo'), async (req, res, next) => {
 
     const response = { category, confidence, result };
 
-    // Save to cache for future uploads of the same image
-    cache.set(req.file.buffer, response);
+    // Save to cache for future uploads of the same image + same hints
+    cache.set(req.file.buffer, response, hints);
 
     return res.json(response);
   } catch (err) {
