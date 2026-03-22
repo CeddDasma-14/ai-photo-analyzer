@@ -1,4 +1,5 @@
 const Anthropic = require('@anthropic-ai/sdk');
+const { searchPHPrice } = require('../lib/pricingService');
 
 const client = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
 
@@ -16,7 +17,9 @@ Return ONLY valid JSON with no extra text, no markdown fences, no explanation:
   "items": [
     {
       "name": "item name e.g. sofa, dining table, ceiling light",
-      "category": "furniture | lighting | decor | appliance | flooring | window treatment | storage | other",
+      "brand_model": "brand and model if identifiable e.g. Acer Predator Helios Neo 16, IKEA KALLAX, Samsung 55-inch QLED — or null if generic",
+      "search_query": "optimized Google Shopping search query e.g. 'Acer Predator Helios Neo 16 laptop Philippines' or 'fabric sofa 3-seater Philippines'",
+      "category": "furniture | lighting | decor | appliance | electronics | flooring | window treatment | storage | other",
       "condition": "excellent | good | fair | poor",
       "estimated_value_usd": <number>
     }
@@ -177,6 +180,44 @@ async function analyzeRoom(imageBuffer, mediaType) {
     };
   }
 
+  // Fetch real PH market prices for significant items (limit to top 5 by value to save API calls)
+  const rawItems = Array.isArray(extracted.items) ? extracted.items : [];
+  const itemsToPrice = rawItems
+    .filter(item => item.search_query || item.name)
+    .sort((a, b) => (b.estimated_value_usd || 0) - (a.estimated_value_usd || 0))
+    .slice(0, 5);
+
+  const priceResults = await Promise.all(
+    itemsToPrice.map(item => searchPHPrice(item.search_query || `${item.name} Philippines`))
+  );
+
+  // Merge real prices back into items
+  const pricedItems = rawItems.map(item => {
+    const idx = itemsToPrice.findIndex(i => i.name === item.name);
+    const ph = idx !== -1 ? priceResults[idx] : null;
+    return {
+      name:        item.name        ?? null,
+      brand_model: item.brand_model ?? null,
+      category:    item.category    ?? null,
+      condition:   item.condition   ?? null,
+      estimated_value_usd: typeof item.estimated_value_usd === 'number' ? item.estimated_value_usd : null,
+      ...(ph ? {
+        ph_price: {
+          min_php:    ph.min_php,
+          max_php:    ph.max_php,
+          avg_php:    ph.avg_php,
+          source:     ph.source,
+          top_result: ph.top_result,
+        }
+      } : {})
+    };
+  });
+
+  // Compute total in PHP from real prices where available
+  const totalPhp = pricedItems.reduce((sum, item) => {
+    return sum + (item.ph_price?.avg_php ?? (item.estimated_value_usd ? Math.round(item.estimated_value_usd * 56) : 0));
+  }, 0);
+
   return {
     module: 'room',
     title: 'Room Interior Estimator',
@@ -187,8 +228,10 @@ async function analyzeRoom(imageBuffer, mediaType) {
       condition:   extracted.condition   ?? null,
       design_score: typeof extracted.design_score === 'number' ? extracted.design_score : null,
       color_palette: Array.isArray(extracted.color_palette) ? extracted.color_palette : [],
-      items: Array.isArray(extracted.items) ? extracted.items : [],
+      items: pricedItems,
       total_estimated_value_usd: typeof extracted.total_estimated_value_usd === 'number' ? extracted.total_estimated_value_usd : null,
+      total_estimated_value_php: totalPhp || null,
+      pricing_source: process.env.SERPAPI_KEY ? 'Google Shopping PH (real market prices)' : 'AI estimate only',
       strengths:    Array.isArray(extracted.strengths)    ? extracted.strengths    : [],
       improvements: Array.isArray(extracted.improvements) ? extracted.improvements : [],
       natural_light: extracted.natural_light ?? null,
