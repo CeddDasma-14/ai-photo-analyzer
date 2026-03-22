@@ -933,6 +933,7 @@ function RoomResult({ data }) {
   const condStyle       = CONDITION_STYLE[data.condition] ?? { text: '#6b7280', label: data.condition };
 
   const [phpRate, setPhpRate] = useState(null);
+  const [manualPrices, setManualPrices] = useState({});
 
   useEffect(() => {
     fetch('https://api.frankfurter.app/latest?from=USD&to=PHP')
@@ -940,6 +941,31 @@ function RoomResult({ data }) {
       .then(json => setPhpRate(json.rates?.PHP ?? null))
       .catch(() => null);
   }, []);
+
+  function setManualPrice(i, val) {
+    setManualPrices(prev => ({ ...prev, [i]: val }));
+  }
+
+  // Compute total PHP incorporating live prices + manual entries + AI estimates
+  const computedTotalPhp = (() => {
+    if (!hasItems) return null;
+    const rate = phpRate ?? 56;
+    let total = 0;
+    data.items.forEach((item, i) => {
+      if (item.ph_price?.avg_php) {
+        total += item.ph_price.avg_php;
+      } else if (manualPrices[i] !== undefined && manualPrices[i] !== '') {
+        const parsed = parseFloat(String(manualPrices[i]).replace(/,/g, ''));
+        if (!isNaN(parsed) && parsed > 0) total += parsed;
+        else if (item.estimated_value_usd) total += Math.round(item.estimated_value_usd * rate);
+      } else if (item.estimated_value_usd) {
+        total += Math.round(item.estimated_value_usd * rate);
+      }
+    });
+    return total || null;
+  })();
+
+  const hasManualEntry = Object.values(manualPrices).some(v => v !== '' && !isNaN(parseFloat(String(v).replace(/,/g, ''))));
 
   return (
     <div className="space-y-4">
@@ -1118,15 +1144,12 @@ function RoomResult({ data }) {
             ${data.total_estimated_value_usd.toLocaleString()}
             <span className="text-sm text-orange-400/50 ml-1">USD</span>
           </p>
-          {data.total_estimated_value_php ? (
+          {computedTotalPhp ? (
             <p className="text-base font-semibold text-gray-400 mt-0.5">
-              ≈ ₱{data.total_estimated_value_php.toLocaleString()}
-              <span className="text-xs text-green-500/60 ml-1">● Live PH prices</span>
-            </p>
-          ) : phpRate ? (
-            <p className="text-base font-semibold text-gray-400 mt-0.5">
-              ≈ ₱{Math.round(data.total_estimated_value_usd * phpRate).toLocaleString()}
-              <span className="text-xs text-gray-600 ml-1">PHP</span>
+              ≈ ₱{computedTotalPhp.toLocaleString()}
+              <span className="text-xs ml-1" style={{ color: hasManualEntry ? '#fb923c' : data.total_estimated_value_php ? '#4ade80' : '#6b7280' }}>
+                {hasManualEntry ? '● Includes your prices' : data.total_estimated_value_php ? '● Live PH prices' : 'PHP'}
+              </span>
             </p>
           ) : null}
         </div>
@@ -1177,14 +1200,27 @@ function RoomResult({ data }) {
                         </p>
                         <p className="text-xs text-green-500/60">● Live PH price</p>
                       </>
-                    ) : item.estimated_value_usd != null ? (
-                      <>
-                        <p className="text-sm font-semibold text-white">${item.estimated_value_usd.toLocaleString()}</p>
-                        {phpRate && (
-                          <p className="text-xs text-gray-600">≈ ₱{Math.round(item.estimated_value_usd * phpRate).toLocaleString()}</p>
+                    ) : (
+                      <div className="flex flex-col items-end gap-1">
+                        {item.estimated_value_usd != null && (
+                          <p className="text-xs text-gray-600">${item.estimated_value_usd.toLocaleString()} AI est.</p>
                         )}
-                      </>
-                    ) : null}
+                        <div className="flex items-center gap-1">
+                          <span className="text-xs text-gray-600">₱</span>
+                          <input
+                            type="number"
+                            min="0"
+                            placeholder="Enter price"
+                            value={manualPrices[i] ?? ''}
+                            onChange={e => setManualPrice(i, e.target.value)}
+                            className="w-24 bg-white/[0.04] border border-white/10 rounded px-2 py-1 text-xs text-gray-200 placeholder-gray-700 focus:outline-none focus:border-orange-500/50 text-right"
+                          />
+                        </div>
+                        {manualPrices[i] && !isNaN(parseFloat(String(manualPrices[i]).replace(/,/g, ''))) && parseFloat(String(manualPrices[i]).replace(/,/g, '')) > 0 && (
+                          <p className="text-xs text-orange-400/70">● Your price</p>
+                        )}
+                      </div>
+                    )}
                   </div>
                 </div>
               );
