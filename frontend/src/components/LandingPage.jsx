@@ -18,7 +18,7 @@ const MODULES = [
   },
   {
     key: 'plant', emoji: '🌿', label: 'Plant Health Detector',
-    desc: 'PlantNet AI identifies species, Claude diagnoses diseases with expert care tips.',
+    desc: 'PlantNet AI identifies species, then diagnoses diseases with expert care tips.',
     color: '#4ade80', glow: 'rgba(74,222,128,0.18)',
     preview: { type: 'plant', name: 'Shield Aralia', health: 82, status: 'Healthy' },
   },
@@ -36,7 +36,7 @@ const MODULES = [
   },
   {
     key: 'math', emoji: '📐', label: 'Math Problem Solver',
-    desc: 'Photograph any equation — get step-by-step solutions powered by Claude Sonnet.',
+    desc: 'Photograph any equation — get step-by-step solutions with detailed explanations.',
     color: '#facc15', glow: 'rgba(250,204,21,0.18)',
     preview: { type: 'math', problem: '2x + 5 = 11', answer: 'x = 3' },
   },
@@ -56,7 +56,7 @@ const MODULES = [
 
 const STEPS = [
   { icon: Upload,   title: 'Upload or Capture',     desc: 'Drag & drop a photo, browse your files, or use your camera for a real-time shot.' },
-  { icon: Zap,      title: 'AI Analyzes Instantly',  desc: 'Claude Vision reads the image, identifies the subject, and runs the right module.' },
+  { icon: Zap,      title: 'AI Analyzes Instantly',  desc: 'Advanced vision AI reads the image, identifies the subject, and runs the right module.' },
   { icon: Sparkles, title: 'Get Deep Insights',      desc: 'Structured results — data, scores, costs, steps, and recommendations — in seconds.' },
 ];
 
@@ -78,7 +78,7 @@ const FAQ_ITEMS = [
   },
   {
     q: 'How accurate is the AI?',
-    a: 'Plant identification uses PlantNet\'s specialized botanical model. Math solving uses Claude Sonnet. Other modules use Claude Vision with module-specific prompts — accuracy varies by photo quality.',
+    a: 'Plant identification uses PlantNet\'s specialized botanical model. Other modules use advanced vision AI with module-specific prompts — accuracy varies by photo quality.',
   },
   {
     q: 'Are my photos stored or shared?',
@@ -806,7 +806,7 @@ export default function LandingPage({ onLaunch }) {
         <div className="inline-flex items-center gap-2 text-xs font-bold px-4 py-2 rounded-full mb-7 animate-fade-up"
           style={{ background: 'rgba(249,115,22,0.1)', border: '1px solid rgba(249,115,22,0.25)', color: '#fb923c' }}>
           <span className="w-1.5 h-1.5 rounded-full bg-orange-400 animate-pulse" style={{ boxShadow: '0 0 6px #f97316' }} />
-          Powered by Claude Vision AI · 7 Modules
+          AI-Powered · 7 Modules
         </div>
 
         {/* Headline */}
@@ -907,8 +907,8 @@ export default function LandingPage({ onLaunch }) {
           <div ref={trustRef} className="grid sm:grid-cols-3 gap-5">
             {[
               { icon: Shield, title: 'Privacy First',   desc: 'Photos are never stored. Each analysis is processed in memory and discarded immediately.' },
-              { icon: Clock,  title: 'Instant Results', desc: 'Powered by Claude\'s vision API — most analyses complete in under 5 seconds.' },
-              { icon: Star,   title: 'High Accuracy',   desc: 'Plant ID uses PlantNet\'s specialist model. Math uses Claude Sonnet for verified answers.' },
+              { icon: Clock,  title: 'Instant Results', desc: 'Advanced vision AI — most analyses complete in under 5 seconds.' },
+              { icon: Star,   title: 'High Accuracy',   desc: 'Plant ID uses PlantNet\'s specialist model. Math uses a dedicated solver for verified answers.' },
             ].map((item, i) => (
               <div key={item.title} className="rounded-2xl border p-5"
                 style={{
@@ -975,7 +975,7 @@ export default function LandingPage({ onLaunch }) {
             </div>
             <div>
               <p className="text-sm font-bold text-orange-200/70">AI Photo Analyzer</p>
-              <p className="text-xs text-orange-400/40">Powered by Claude Vision AI</p>
+              <p className="text-xs text-orange-400/40">AI-Powered Photo Analysis</p>
             </div>
           </div>
 
